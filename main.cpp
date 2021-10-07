@@ -7,7 +7,10 @@
 
 std::vector<std::vector<int>> matrix;
 
-int main(int argc, char** argv){
+bool* visited;
+bool dfs(int N, int p);
+
+int main(int argc, char** argv) {
 
     // program can be used with command line argument
     // this argument used for handling .dot source file path
@@ -22,12 +25,12 @@ int main(int argc, char** argv){
 
     }
 
-    if(source.length()){ // checking for file exists if program used with command line argument
+    if(source.length()) { // checking for file exists if program used with command line argument
 
         std::fstream file;
         file.open(source);
 
-        if(!file.is_open()){
+        if(!file.is_open()) {
 
             std::cout << "File doesn\'t exist, terminating..." << std::endl;
             return 0;
@@ -36,11 +39,11 @@ int main(int argc, char** argv){
 
     }
 
-    if(!source.length()){
+    if(!source.length()) {
+
         std::cout << "Enter adjacency matrix: " << std::endl;
 
         std::vector<int> temp; // temp vector for row scanning
-        std::vector<std::vector<int>> matrix; // adjacency matrix
         std::string input = "";
 
         std::getline(std::cin, input); // scanning one row for matrix size calculation
@@ -54,7 +57,7 @@ int main(int argc, char** argv){
         matrix.push_back(temp);
         int matrix_size = temp.size();
 
-        for(int i = 0; i < matrix_size - 1; i++){ // scanning all from cin rows to matrix
+        for(int i = 0; i < matrix_size - 1; i++) { // scanning all from cin rows to matrix
 
             temp.clear();
             input = "";
@@ -72,9 +75,12 @@ int main(int argc, char** argv){
 
         std::string dot_file = "graph my_graph{\n"; // generating temp.dot file content
 
-        for(int i = 0; i < (int)matrix.size(); i++){
-            for(int j = 0; j <= i; j++){
-                if(matrix[i][j]){
+        for(int i = 0; i < (int)matrix.size(); i++) {
+
+            for(int j = 0; j <= i; j++) {
+
+                if(matrix[i][j]) {
+
                     dot_file += "\t";
                     dot_file += (i + 1 + '0');
                     dot_file += " -- ";
@@ -84,6 +90,7 @@ int main(int argc, char** argv){
                     dot_file += "\",label=\"";
                     dot_file += matrix[i][j] + '0';
                     dot_file += "\"]\n";
+
                 }
             }
         }
@@ -100,7 +107,7 @@ int main(int argc, char** argv){
 
     std::string rm_dcommand = "";
 
-    if(!source.length()){ // command for removing temp.dot file, filling string only if command line argument not presented
+    if(!source.length()) { // command for removing temp.dot file, filling string only if command line argument not presented
 
         rm_dcommand = "rm ";
         rm_dcommand += "temp.dot";
@@ -126,6 +133,27 @@ int main(int argc, char** argv){
     system(create_command.c_str()); // creating jpeg temp image
     system(gen_command.c_str()); // generating jpeg temp image
 
+    visited = (bool*)malloc(sizeof(bool) * matrix.size()); // allocating memory for bool array
+
+    bool cycle_check = false;
+
+    for(int k = 0; k < matrix.size(); k++) { // checking graph for cycles
+
+        for(int i = 0; i < matrix.size(); i++)
+            visited[i] = false;
+
+        if(dfs(k, k)) {
+            cycle_check = true;
+            break;
+        }
+
+    }
+
+    if(cycle_check)
+        std::cout << "Graph has cycle(s)" << std::endl;
+    else
+        std::cout << "Graph doesn\'t have cycles" << std::endl;
+
     sf::Image jpeg;
     jpeg.loadFromFile(jpeg_fname); // loading temp image for getting dimensions
 
@@ -143,13 +171,15 @@ int main(int argc, char** argv){
     if(rm_dcommand.length())
         system(rm_dcommand.c_str()); // if program used without command line argument, removing temp.dot file
 
+    while(window.isOpen()) { // drawing window with SFML
 
-
-    while (window.isOpen()) { // drawing window with SFML
         sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
+
+        while(window.pollEvent(event)) {
+
+            if(event.type == sf::Event::Closed)
                 window.close();
+
         }
 
         window.clear();
@@ -157,8 +187,25 @@ int main(int argc, char** argv){
         window.display();
     }
 
+    free(visited);
+
     return 0;
 }
 
+bool dfs(int N, int p){ // deep first search
 
+    visited[N] = true;
+
+    for(int i = 0; i < matrix.size(); i++) {
+
+        if(matrix[N][i] && i != p && !visited[i])
+            return dfs(i, N);
+
+        else if(matrix[N][i] && i != p && visited[i])
+            return true;
+
+    }
+
+    return false;
+}
 
