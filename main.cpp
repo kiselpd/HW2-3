@@ -9,6 +9,7 @@ std::vector<std::vector<int>> matrix;
 
 bool* visited;
 bool dfs(int N, int p);
+bool issimple = true;
 
 int main(int argc, char** argv) {
 
@@ -145,17 +146,21 @@ int main(int argc, char** argv) {
         for(int i = 0; i < matrix.size(); i++) // cleaning array
             visited[i] = false;
 
-        if(dfs(k, k)) {
+        if(dfs(k, k) && issimple) {
             cycle_check = true;
+            break;
+        }
+        else if(!issimple){
+            cycle_check = false;
             break;
         }
 
     }
 
     if(cycle_check)
-        std::cout << "Graph has cycle(s)" << std::endl;
+        std::cout << "Graph has simple cycle" << std::endl;
     else
-        std::cout << "Graph doesn\'t have cycles" << std::endl;
+        std::cout << "Graph doesn\'t have simple cycle" << std::endl;
 
     sf::Image jpeg;
     jpeg.loadFromFile(jpeg_fname); // loading temp image for getting dimensions
@@ -198,6 +203,16 @@ int main(int argc, char** argv) {
 bool dfs(int N, int p){ // deep first search
 
     visited[N] = true;
+
+    int count = 0;
+
+    for(int i = 0; i < matrix.size(); i++)
+        count += matrix[N][i];
+
+    if(count > 2){
+        issimple = false;
+        return false;
+    }
 
     for(int i = 0; i < matrix.size(); i++) {
 
