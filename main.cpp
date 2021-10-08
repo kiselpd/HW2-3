@@ -25,9 +25,11 @@ int main(int argc, char** argv) {
 
     }
 
+    std::ifstream file;
+
     if(source.length()) { // checking for file exists if program used with command line argument
 
-        std::fstream file;
+
         file.open(source);
 
         if(!file.is_open()) {
@@ -37,84 +39,85 @@ int main(int argc, char** argv) {
 
         }
 
+        std::cin.rdbuf(file.rdbuf()); // redirecting cin to read from file
+
     }
 
-    if(!source.length()) {
+    if(!source.length()) { // if file not presented, print invite to input
 
         std::cout << "Enter adjacency matrix: " << std::endl;
 
-        std::vector<int> temp; // temp vector for row scanning
-        std::string input = "";
+    }
 
-        std::getline(std::cin, input); // scanning one row for matrix size calculation
+    std::vector<int> temp; // temp vector for row scanning
+    std::string input = "";
 
-        int num;
+    std::getline(std::cin, input); // scanning one row for matrix size calculation
+
+    int num;
+    std::stringstream ss(input);
+
+    while(ss >> num)
+        temp.push_back(num); // size of temp on this step - num of columns and rows in matrix
+
+    matrix.push_back(temp);
+    int matrix_size = temp.size();
+
+    for(int i = 0; i < matrix_size - 1; i++) { // scanning all rows to matrix
+
+        temp.clear();
+        input = "";
+
+        std::getline(std::cin, input);
+
         std::stringstream ss(input);
 
         while(ss >> num)
-            temp.push_back(num); // size of temp on this step - num of columns and rows in matrix
+            temp.push_back(num);
 
         matrix.push_back(temp);
-        int matrix_size = temp.size();
 
-        for(int i = 0; i < matrix_size - 1; i++) { // scanning all from cin rows to matrix
+    }
 
-            temp.clear();
-            input = "";
+    if(file) // closing file if exists
+        file.close();
 
-            std::getline(std::cin, input);
+    std::string dot_file = "graph my_graph{\n"; // generating temp.dot file content
 
-            std::stringstream ss(input);
+    for(int i = 0; i < (int)matrix.size(); i++) {
 
-            while(ss >> num)
-                temp.push_back(num);
+        for(int j = 0; j <= i; j++) {
 
-            matrix.push_back(temp);
+            if(matrix[i][j]) {
 
-        }
+                dot_file += "\t";
+                dot_file += (i + 1 + '0');
+                dot_file += " -- ";
+                dot_file += (j + 1 + '0');
+                dot_file += " [label=\"";
+                dot_file += matrix[i][j] + '0';
+                dot_file += "\",label=\"";
+                dot_file += matrix[i][j] + '0';
+                dot_file += "\"]\n";
 
-        std::string dot_file = "graph my_graph{\n"; // generating temp.dot file content
-
-        for(int i = 0; i < (int)matrix.size(); i++) {
-
-            for(int j = 0; j <= i; j++) {
-
-                if(matrix[i][j]) {
-
-                    dot_file += "\t";
-                    dot_file += (i + 1 + '0');
-                    dot_file += " -- ";
-                    dot_file += (j + 1 + '0');
-                    dot_file += " [label=\"";
-                    dot_file += matrix[i][j] + '0';
-                    dot_file += "\",label=\"";
-                    dot_file += matrix[i][j] + '0';
-                    dot_file += "\"]\n";
-
-                }
             }
         }
-
-        dot_file += "}";
-
-        std::fstream temp_file;
-
-        temp_file.open("temp.dot", std::ios::out);
-        temp_file << dot_file; // writing temp.dot to file
-        temp_file.close();
-
     }
 
-    std::string rm_dcommand = "";
 
-    if(!source.length()) { // command for removing temp.dot file, filling string only if command line argument not presented
+    dot_file += "}";
 
-        rm_dcommand = "rm ";
-        rm_dcommand += "temp.dot";
+    std::fstream temp_file;
 
-    }
+    temp_file.open("temp.dot", std::ios::out);
+    temp_file << dot_file; // writing temp.dot to file
+    temp_file.close();
 
-    source = (!source.length()) ? "temp.dot" : source;
+
+    std::string rm_dcommand = "rm "; // command for deleting temp.dot file
+    rm_dcommand += "temp.dot";
+
+    source = "temp.dot";
 
     std::string jpeg_fname = source; // name of .jpeg file
     jpeg_fname += ".jpeg";
@@ -139,7 +142,7 @@ int main(int argc, char** argv) {
 
     for(int k = 0; k < matrix.size(); k++) { // checking graph for cycles
 
-        for(int i = 0; i < matrix.size(); i++)
+        for(int i = 0; i < matrix.size(); i++) // cleaning array
             visited[i] = false;
 
         if(dfs(k, k)) {
