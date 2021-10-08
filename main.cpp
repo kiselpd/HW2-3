@@ -91,15 +91,15 @@ int main(int argc, char** argv) {
 
             if(matrix[i][j]) {
 
-                dot_file += "\t";
-                dot_file += (i + 1 + '0');
-                dot_file += " -- ";
-                dot_file += (j + 1 + '0');
-                dot_file += " [label=\"";
-                dot_file += matrix[i][j] + '0';
-                dot_file += "\",label=\"";
-                dot_file += matrix[i][j] + '0';
-                dot_file += "\"]\n";
+                for(int k = 0; k < matrix[i][j]; k++){
+
+                    dot_file += "\t";
+                    dot_file += (i + 1 + '0');
+                    dot_file += " -- ";
+                    dot_file += (j + 1 + '0');
+                    dot_file += "\n";
+
+                }
 
             }
         }
